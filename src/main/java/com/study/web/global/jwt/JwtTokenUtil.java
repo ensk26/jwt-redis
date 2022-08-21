@@ -53,4 +53,8 @@ public class JwtTokenUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public void reGenerateToken(String email, String refreshToken) {
+
+    }
 }

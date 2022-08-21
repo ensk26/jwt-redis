@@ -10,6 +10,7 @@ import com.study.web.global.jwt.JwtTokenUtil;
 import com.study.web.web.auth.dto.JwtRequestDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
+import com.study.web.web.auth.dto.ReRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,8 +46,6 @@ public class AuthService {
         return member.getEmail();
     }
 
-
-
     public JwtRequestDto login(MemberLoginRequestDto requestDto) throws Exception {
 
         //스프링 시큐러티로 만든 provider가 반환한 Authentication 객체는 나중에 구현 해보자
@@ -69,6 +68,8 @@ public class AuthService {
         String refreshToken = refreshTokenService
                 .saveRefreshToken(email, jwtTokenUtil.generateAccessToken(email), REFRESH_TOKEN_EXPIRATION_TIME.getValue());
 
+        //왜 refreshToken은 생성때 accessToken과 같은 만료 기간을 사용해 생성해서, redis의 생성기간을 또 지정을 해주지
+        //refreshToken과 accessToken의 값이 같은 이유??
         log.info(String.valueOf(refreshToken));
         log.info("토큰 생성후");
         return JwtRequestDto.builder()
@@ -76,6 +77,24 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    public ReRequestDto reIssueAccessToken(String refreshToken) {
+
+        String email = jwtTokenUtil.getEmail(refreshToken);
+
+        String token = refreshTokenService.findRefreshToken(email);
+        if (!refreshToken.equals(token)) {
+            throw new NoSuchElementException("토큰이 불일치");
+        }
+
+        String accessToken = jwtTokenUtil.generateAccessToken(email);
+
+        return ReRequestDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+        //dto에 숨겨 놓기 , todo 책갈피
     }
 
 

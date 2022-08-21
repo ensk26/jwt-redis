@@ -1,3 +1,4 @@
+/*
 package com.study.web.domain.jwtToken.dao;
 
 import com.study.web.domain.jwtToken.entity.RefreshToken;
@@ -16,3 +17,4 @@ public class MemoryRefreshTokenRedisRepository implements RefreshTokenRedisRepos
         return store.get(token.getId());
     }
 }
+*/

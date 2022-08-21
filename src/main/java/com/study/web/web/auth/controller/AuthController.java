@@ -5,12 +5,15 @@ import com.study.web.global.jwt.JwtTokenUtil;
 import com.study.web.web.auth.dto.JwtRequestDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
+import com.study.web.web.auth.dto.ReRequestDto;
 import com.study.web.web.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Slf4j
 @RestController
@@ -33,6 +36,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<JwtRequestDto> login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) throws Exception {
         return ResponseEntity.ok(authService.login(memberLoginRequestDto));
+    }
+
+    //email과 refreshtoken을 받는다.
+    @PostMapping("/re-issue")
+    public ResponseEntity<ReRequestDto> reIssue(HttpServletRequest httpServletRequest) {
+        String authorizationHeader = httpServletRequest.getHeader("Authorization");
+        String refreshToken = authorizationHeader.split(" ")[1];
+        return ResponseEntity.ok(authService.reIssueAccessToken(refreshToken));
     }
 
     @PostMapping("/logout")

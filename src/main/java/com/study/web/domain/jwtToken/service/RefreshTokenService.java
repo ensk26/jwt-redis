@@ -1,6 +1,6 @@
 package com.study.web.domain.jwtToken.service;
 
-import com.study.web.domain.jwtToken.dao.RefreshTokenRedisRepository;
+//import com.study.web.domain.jwtToken.dao.RefreshTokenRedisRepository;
 import com.study.web.domain.jwtToken.entity.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Slf4j
 public class RefreshTokenService {
-    private final RefreshTokenRedisRepository refreshTokenRepository;
+    //private final RefreshTokenRedisRepository refreshTokenRepository;
     private final RedisService redisService;
 
     public String saveRefreshToken(String id, String refreshToken, Long expiration) {
@@ -26,6 +26,10 @@ public class RefreshTokenService {
         //log.debug(String.valueOf(refreshTokenRepository.save(token)));
        // return refreshTokenRepository.save(token);
         redisService.setValues(id,refreshToken, Duration.ofMillis(expiration));
+        return redisService.getValues(id);
+    }
+
+    public String findRefreshToken(String id){
         return redisService.getValues(id);
     }
 }

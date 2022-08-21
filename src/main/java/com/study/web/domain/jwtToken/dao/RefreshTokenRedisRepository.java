@@ -1,3 +1,4 @@
+/*
 package com.study.web.domain.jwtToken.dao;
 
 import com.study.web.domain.jwtToken.entity.RefreshToken;
@@ -11,3 +12,4 @@ public interface RefreshTokenRedisRepository {//} extends CrudRepository<Refresh
     //jpa로 구현시 삭제
     RefreshToken save(RefreshToken token);
 }
+*/
