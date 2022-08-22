@@ -38,7 +38,7 @@ public class AuthController {
     }
 
     //email과 refreshtoken을 받는다.
-    @GetMapping("/re-issue")
+    @PostMapping("/re-issue")
     public ResponseEntity<JwtResponeDto> reIssue(HttpServletRequest httpServletRequest) {
         String authorizationHeader = httpServletRequest.getHeader("Authorization");
         String refreshToken = authorizationHeader.split(" ")[1];
@@ -46,15 +46,26 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout(@RequestHeader("Authorization") String accessToken,
-                       @RequestHeader("RefreshToken") String refreshToken) {
-        String uuid = jwtTokenUtil.getEmail(resolveToken(accessToken));
+    public void logout(HttpServletRequest httpServletRequest) {
+        String authorizationHeader = httpServletRequest.getHeader("Authorization");
+        String refreshToken = authorizationHeader.split(" ")[1];
+        authService.logout(refreshToken);
         //AuthService
+    }
+
+    //회원탈퇴, 닉네임 변경, 비밀번호 변경
+
+    @PostMapping("/withdrawal")
+    public void Withdrawal(HttpServletRequest httpServletRequest) {
+        String authorizationHeader = httpServletRequest.getHeader("Authorization");
+        String refreshToken = authorizationHeader.split(" ")[1];
+        authService.Withdrawal(refreshToken);
     }
 
     private String resolveToken(String accessToken) {
         return accessToken.substring(7);
     }
+
 }
 
 //restController랑, controller, 기본 생성자 기억하자, 예외처리.. response body 공부, controllerAdvice,

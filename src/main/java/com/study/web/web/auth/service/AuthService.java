@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
 import static com.study.web.global.jwt.JwtExpirationEnums.REISSUE_EXPIRATION_TIME;
@@ -73,6 +74,28 @@ public class AuthService {
         log.info("토큰 생성후");
         return JwtResponeDto.toEntity(accessToken, refreshToken);
     }
+
+    public void logout(String refreshToken) {
+        //refreshToken 삭제
+        String email = jwtTokenUtil.getEmail(refreshToken);
+        refreshTokenService.deleteRefreshToken(email);
+
+    }
+
+    public void Withdrawal(String refreshToken) {
+        String email = jwtTokenUtil.getEmail(refreshToken);
+
+        String token = refreshTokenService.findRefreshToken(email);
+        if (!refreshToken.equals(token)) {
+            throw new NoSuchElementException("토큰이 불일치");
+        }
+
+        //Optional<Member> member = memberService.findMember(email);
+        memberService.deleteMember(email);
+
+    }
+
+    //닉네임,비밀번호 변경 구현
 
     public JwtResponeDto reIssueAccessToken(String refreshToken) {
 

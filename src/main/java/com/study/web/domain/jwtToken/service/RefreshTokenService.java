@@ -15,21 +15,25 @@ public class RefreshTokenService {
     //private final RefreshTokenRedisRepository refreshTokenRepository;
     private final RedisService redisService;
 
-    public String saveRefreshToken(String id, String refreshToken, Long expiration) {
-        log.info(id);
+    public String saveRefreshToken(String email, String refreshToken, Long expiration) {
+        log.info(email);
         RefreshToken token = RefreshToken.builder()
-                .id(id)
+                .id(email)
                 .refreshToken(refreshToken)
                 .expiration(expiration/1000)
                 .build();
         log.info(token.getId());
         //log.debug(String.valueOf(refreshTokenRepository.save(token)));
        // return refreshTokenRepository.save(token);
-        redisService.setValues(id,refreshToken, Duration.ofMillis(expiration));
-        return redisService.getValues(id);
+        redisService.setValues(email,refreshToken, Duration.ofMillis(expiration));
+        return redisService.getValues(email);
     }
 
-    public String findRefreshToken(String id){
-        return redisService.getValues(id);
+    public String findRefreshToken(String email){
+        return redisService.getValues(email);
+    }
+
+    public void deleteRefreshToken(String email) {
+        redisService.deleteValues(email);
     }
 }

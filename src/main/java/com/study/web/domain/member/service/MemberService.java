@@ -22,4 +22,9 @@ public class MemberService {
     public Optional<Member> findMember(String email) {
         return memberRepository.findByEmail(email);
     }
+
+    public void deleteMember(String email) {
+        memberRepository.deleteByEmail(email);
+        //나중에 querydsl을 이용해 boolean(y/n 값으로도 바꾸는 작업 필요) 수정
+    }
 }
