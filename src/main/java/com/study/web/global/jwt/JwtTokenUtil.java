@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.ACCESS_TOKEN_EXPIRATION_TIME;
+import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
 
 @Component
 public class JwtTokenUtil {
@@ -22,6 +23,10 @@ public class JwtTokenUtil {
 
     public String generateAccessToken(String email) {
         return doGenerateToken(email,ACCESS_TOKEN_EXPIRATION_TIME.getValue());
+    }
+
+    public String generateRefreshToken(String email) {
+        return doGenerateToken(email, REFRESH_TOKEN_EXPIRATION_TIME.getValue());
     }
 
     private String doGenerateToken(String email, Long expireTime) {
@@ -54,7 +59,9 @@ public class JwtTokenUtil {
                 .getBody();
     }
 
-    public void reGenerateToken(String email, String refreshToken) {
-
+    public long getExpirationTime(String token) {
+        Date expiration = extractAllClaims(token).getExpiration();
+        Date now = new Date();
+        return expiration.getTime()-now.getTime();
     }
 }
