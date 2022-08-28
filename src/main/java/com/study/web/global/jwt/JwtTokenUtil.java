@@ -1,10 +1,14 @@
 package com.study.web.global.jwt;
 
+import com.study.web.global.error.exception.ErrorCode;
+import com.study.web.global.error.exception.NotValidTokenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -15,6 +19,7 @@ import java.util.List;
 import static com.study.web.global.jwt.JwtExpirationEnums.ACCESS_TOKEN_EXPIRATION_TIME;
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
 
+@Slf4j
 @Component
 public class JwtTokenUtil {
 
@@ -52,11 +57,16 @@ public class JwtTokenUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey(SECRET_KEY))
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey(SECRET_KEY))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e) {
+            log.error("exception msg",e);
+            throw new NotValidTokenException(ErrorCode.NOT_VALID_TOKEN);
+        }
     }
 
     public long getExpirationTime(String token) {
@@ -64,4 +74,16 @@ public class JwtTokenUtil {
         Date now = new Date();
         return expiration.getTime()-now.getTime();
     }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        String email = getEmail(token);
+        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    }
+
+    private boolean isTokenExpired(String token) {
+        Date expiration = extractAllClaims(token).getExpiration();
+        return expiration.before(new Date());
+    }
 }
+
+//todo: customUser 수정, filter 수정, filter적용해서 전반적으로 수정

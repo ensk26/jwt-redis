@@ -2,10 +2,9 @@ package com.study.web.web.auth.controller;
 
 
 import com.study.web.global.jwt.JwtTokenUtil;
-import com.study.web.web.auth.dto.JwtResponeDto;
+import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
-import com.study.web.web.auth.dto.ReRequestDto;
 import com.study.web.web.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +32,13 @@ public class AuthController {
 
     //ResponseEntity 응답클래스, 헤더정보와 http 상태코드를 함께 가공
     @PostMapping("/login")
-    public ResponseEntity<JwtResponeDto> login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) throws Exception {
+    public ResponseEntity<JwtResponseDto> login(@RequestBody MemberLoginRequestDto memberLoginRequestDto) throws Exception {
         return ResponseEntity.ok(authService.login(memberLoginRequestDto));
     }
 
     //email과 refreshtoken을 받는다.
     @PostMapping("/re-issue")
-    public ResponseEntity<JwtResponeDto> reIssue(HttpServletRequest httpServletRequest) {
+    public ResponseEntity<JwtResponseDto> reIssue(HttpServletRequest httpServletRequest) {
         String authorizationHeader = httpServletRequest.getHeader("Authorization");
         String refreshToken = authorizationHeader.split(" ")[1];
         return ResponseEntity.ok(authService.reIssueAccessToken(refreshToken));

@@ -1,3 +1,4 @@
+/*
 package com.study.web.domain.jwtToken.service;
 
 import com.study.web.domain.jwtToken.entity.RefreshToken;
@@ -24,7 +25,7 @@ public class RedisConfig {
         return new LettuceConnectionFactory(host, port);
     }
 
-    @Bean
+    ///@Bean
     public RedisTemplate<String, String> redisTemplate() {
         RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
         redisTemplate.setKeySerializer(new StringRedisSerializer());
@@ -34,3 +35,4 @@ public class RedisConfig {
     }
 
 }
+*/

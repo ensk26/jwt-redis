@@ -1,15 +1,20 @@
 package com.study.web.global.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.study.web.domain.jwtToken.dao.LogoutAccessTokenRedisRepository;
+import com.study.web.global.filter.ExceptionHandlerFilter;
+import com.study.web.global.filter.JwtAuthenticationFilter;
 import com.study.web.global.jwt.JwtEntryPoint;
+import com.study.web.global.jwt.JwtTokenUtil;
+import com.study.web.web.auth.service.CustomUserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.*;
 
@@ -18,25 +23,32 @@ import static org.springframework.security.config.http.SessionCreationPolicy.*;
 public class SecurityConfig{
 
     private final JwtEntryPoint jwtEntryPoint;
+    private final LogoutAccessTokenRedisRepository logoutAccessTokenRepository;
+    private final JwtTokenUtil jwtTokenUtil;
+    private final CustomUserDetailService customUserDetailService;
+
+    private final ObjectMapper objectMapper;
+
     //정적 파일에 대한 요청들
     private static final String[] AUTH_WHITELLIST = {
-
+            "/auth/","/auth/signup","/auth/login"
     };
 
 
     //configure
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .authorizeHttpRequests((authz) -> authz
-                        //login 없이 접근 허용하는 url
-                        .antMatchers("/auth/**").permitAll()
-                        // ADMIN권한이 있는 사용자만 접근 가능 url
-                        .antMatchers("/admin/**").hasRole("ADMIN")
-                        //그 외 모든 요청은 인증과정 필요
-                        .anyRequest().authenticated()
 
-                )
+        httpSecurity
+                .authorizeHttpRequests()
+                //login 없이 접근 허용하는 url
+                .antMatchers("/auth/", "/auth/signup", "/auth/login").permitAll()
+                // ADMIN권한이 있는 사용자만 접근 가능 url
+                //.antMatchers("/admin/**").hasRole("ADMIN")
+                //그 외 모든 요청은 인증과정 필요
+                .anyRequest().authenticated()
+
+                .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(jwtEntryPoint)
                 //.authenticationEntryPoint 401 에러
@@ -48,6 +60,11 @@ public class SecurityConfig{
                 //jwt로 로그인/로그아웃을 처리할것이라서, logoutdisable
 
                 .and()
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtTokenUtil, customUserDetailService),
+                        UsernamePasswordAuthenticationFilter.class)
+                //jwtAuthenticationFilter를  UsernamePasswordAuthenticationFilter 전에 추가 하겠다는 의미
+                .addFilterBefore(new ExceptionHandlerFilter(objectMapper), JwtAuthenticationFilter.class)
                 .csrf().disable()
                 .httpBasic();
         return httpSecurity.build();
@@ -65,4 +82,5 @@ public class SecurityConfig{
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    //2개부족
 }

@@ -1,9 +1,7 @@
 package com.study.web.web.auth.service;
 
 import com.study.web.domain.member.entity.Member;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 

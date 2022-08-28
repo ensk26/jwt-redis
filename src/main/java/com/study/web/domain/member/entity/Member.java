@@ -33,7 +33,8 @@ public class Member {
 
     @NotNull
     private String password;
-    //private Role role; //뺀다.
+
+    private Role role; //뺀다.
 
     //entity는 dto의 존재를 몰라야한다.,dto에 종속될수있으니 하지 말자..
 
@@ -42,6 +43,7 @@ public class Member {
         this.email = email;
         this.name = name;
         this.password = password;
+        role=Role.USER;
     }
     //builder, new , 정적팩토리 메서드의 차이점
 

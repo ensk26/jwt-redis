@@ -4,19 +4,18 @@ import com.study.web.DuplicationValidate;
 import com.study.web.domain.jwtToken.service.RefreshTokenService;
 import com.study.web.domain.member.entity.Member;
 import com.study.web.domain.member.service.MemberService;
-import com.study.web.global.jwt.JwtHeaderUtilEnums;
+import com.study.web.global.cache.CacheKey;
 import com.study.web.global.jwt.JwtTokenUtil;
-import com.study.web.web.auth.dto.JwtResponeDto;
+import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
-import com.study.web.web.auth.dto.ReRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
 import static com.study.web.global.jwt.JwtExpirationEnums.REISSUE_EXPIRATION_TIME;
@@ -47,7 +46,7 @@ public class AuthService {
         return member.getEmail();
     }
 
-    public JwtResponeDto login(MemberLoginRequestDto requestDto) throws Exception {
+    public JwtResponseDto login(MemberLoginRequestDto requestDto) throws Exception {
 
         //스프링 시큐러티로 만든 provider가 반환한 Authentication 객체는 나중에 구현 해보자
 
@@ -72,51 +71,47 @@ public class AuthService {
         //왜 refreshToken은 생성때 accessToken과 같은 만료 기간을 사용해 생성해서, redis의 생성기간을 또 지정을 해주지
         log.info(String.valueOf(refreshToken));
         log.info("토큰 생성후");
-        return JwtResponeDto.toEntity(accessToken, refreshToken);
+        return JwtResponseDto.toEntity(accessToken, refreshToken);
     }
 
+    //캐시 제거
     public void logout(String refreshToken) {
         //refreshToken 삭제
         String email = jwtTokenUtil.getEmail(refreshToken);
+        removeCache(email);
         refreshTokenService.deleteRefreshToken(email);
-
     }
 
     public void Withdrawal(String refreshToken) {
         String email = jwtTokenUtil.getEmail(refreshToken);
-
-        String token = refreshTokenService.findRefreshToken(email);
-        if (!refreshToken.equals(token)) {
-            throw new NoSuchElementException("토큰이 불일치");
-        }
-
-        //Optional<Member> member = memberService.findMember(email);
+        removeCache(email);
+        refreshTokenService.deleteRefreshToken(email);
         memberService.deleteMember(email);
-
     }
 
+    //todo: 이메일 매개 변수로 받아와야함, CacheEvict 캐시 삭제를 위해 지정해줄 key 값 필요
     //닉네임,비밀번호 변경 구현
+    //앞에서 간단히 검증, 여기서 db에서 회원정보확인하고 처리
 
-    public JwtResponeDto reIssueAccessToken(String refreshToken) {
+    public JwtResponseDto reIssueAccessToken(String refreshToken) {
 
         String email = jwtTokenUtil.getEmail(refreshToken);
-
-        String token = refreshTokenService.findRefreshToken(email);
-        if (!refreshToken.equals(token)) {
-            throw new NoSuchElementException("토큰이 불일치");
-        }
 
         String accessToken = jwtTokenUtil.generateAccessToken(email);
 
         //클라이언트 refresh 토큰의 만료 시간이, 지정한 최소 refresh토큰 만료 시간보다 적을때 새로운 refresh 토큰을 발급해준다.
         if (jwtTokenUtil.getExpirationTime(refreshToken) < REISSUE_EXPIRATION_TIME.getValue()) {
-            return JwtResponeDto.toEntity(accessToken, refreshTokenService.saveRefreshToken(email,
+            return JwtResponseDto.toEntity(accessToken, refreshTokenService.saveRefreshToken(email,
                     jwtTokenUtil.generateRefreshToken(email), REFRESH_TOKEN_EXPIRATION_TIME.getValue()));
         }
 
-        return JwtResponeDto.toEntity(accessToken, refreshToken);
+        return JwtResponseDto.toEntity(accessToken, refreshToken);
         //dto에 숨겨 놓기 , todo 책갈피
         //중복되는거 나중에 private로 빼기
+    }
+
+    @CacheEvict(value = CacheKey.USER,key = "#email")
+    private void removeCache(String email) {
     }
 
 
