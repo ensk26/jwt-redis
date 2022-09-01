@@ -31,7 +31,8 @@ public class SecurityConfig{
 
     //정적 파일에 대한 요청들
     private static final String[] AUTH_WHITELLIST = {
-            "/auth/","/auth/signup","/auth/login"
+            "/auth/", "/auth/signup", "/auth/login",
+            "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**"
     };
 
 
@@ -42,7 +43,7 @@ public class SecurityConfig{
         httpSecurity
                 .authorizeHttpRequests()
                 //login 없이 접근 허용하는 url
-                .antMatchers("/auth/", "/auth/signup", "/auth/login").permitAll()
+                .antMatchers(AUTH_WHITELLIST).permitAll()
                 // ADMIN권한이 있는 사용자만 접근 가능 url
                 //.antMatchers("/admin/**").hasRole("ADMIN")
                 //그 외 모든 요청은 인증과정 필요
