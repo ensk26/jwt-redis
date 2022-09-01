@@ -14,9 +14,13 @@ import java.util.UUID;
 public class MemberSignupRequestDto {
 
     //회원가입 요청 데이터 전달 객체
+
     private String email;
+
     private String name;
+
     private String password;
+
 
     public Member toEntity(PasswordEncoder passwordEncoder) {
         return Member.builder()

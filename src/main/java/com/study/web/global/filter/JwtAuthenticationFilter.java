@@ -31,17 +31,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = getToken(request);
-        if (token != null) {
-            //checkLogout(accessToken);
-            String email = jwtTokenUtil.getEmail(token);
-            if (email != null) {
-                UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
-                validateAccessToken(token, userDetails);
-                processSecurity(request, userDetails);
+        //if (token != null) {
+        //checkLogout(accessToken);
+        log.info(token);
+        String email = jwtTokenUtil.getEmail(token);
+        jwtTokenUtil.validateToken(token);
+        //todo: email과 validateToken 순서에 대해 왜 signature 오류만 나는지에 대해
+        //if (email != null) {
+        //validateAccessToken(token, userDetails);
+        UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
+        processSecurity(request, userDetails);
                 log.info("성공");
-            }
+            //}
             
-        }
+        //}
         filterChain.doFilter(request,response);
     }
 

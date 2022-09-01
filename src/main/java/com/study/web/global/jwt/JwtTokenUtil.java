@@ -2,9 +2,7 @@ package com.study.web.global.jwt;
 
 import com.study.web.global.error.exception.ErrorCode;
 import com.study.web.global.error.exception.NotValidTokenException;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,10 +37,13 @@ public class JwtTokenUtil {
         claims.put("email", email);
 
         return Jwts.builder()
+                .setSubject("ACCESS")
                 .setClaims(claims)
+                .setAudience(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expireTime))
                 .signWith(getSigningKey(SECRET_KEY), SignatureAlgorithm.HS256)
+                .setHeaderParam("typ", "JWT")
                 .compact();
         //무슨 내용인지 공부, {토큰 대상자에 uuid 넣자}, access token인지, refresh token인지 판다
     }
@@ -77,12 +78,37 @@ public class JwtTokenUtil {
 
     public boolean validateToken(String token, UserDetails userDetails) {
         String email = getEmail(token);
-        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        if (!isTokenExpired(token)) {
+            throw new NotValidTokenException(ErrorCode.TOKEN_EXPIRED);
+        }
+
+        return email.equals(userDetails.getUsername());
     }
 
     private boolean isTokenExpired(String token) {
         Date expiration = extractAllClaims(token).getExpiration();
         return expiration.before(new Date());
+    }
+
+    public void validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey(SECRET_KEY))
+                    .build()
+                    .parseClaimsJwt(token);
+        } catch (MalformedJwtException | SecurityException e) {
+            log.error("잘못된 jwt token");
+            throw new NotValidTokenException(ErrorCode.INVALID_TOKEN_SIGNATURE);
+        } catch (ExpiredJwtException e) {
+            log.error("만료된 jwt token");
+            throw new NotValidTokenException(ErrorCode.TOKEN_EXPIRED);
+        } catch (UnsupportedJwtException e) {
+            log.error("지원하지 않는 jwt token");
+            throw new NotValidTokenException(ErrorCode.INVALID_TOKEN_SIGNATURE);
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 jwt token");
+            throw new NotValidTokenException(ErrorCode.NOT_VALID_TOKEN);
+        }
     }
 }
 
