@@ -24,6 +24,35 @@ public class AuthController {
     private final AuthService authService;
     private final JwtTokenUtil jwtTokenUtil;
 
+    @ApiOperation(value = "회원가입 API", notes = "사용자 email, 이름, 비밀번호 정보를 입력해 회원가입을 진행한다.")
+
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "성공입니다.")
+            , @ApiResponse(code = 400, message = "접근이 올바르지 않습니다.")
+    })
+
+    @ApiImplicitParams(
+            {
+                    @ApiImplicitParam(name = "email"
+                            , value = "사용자 email"
+                            , required = true
+                            , dataType = "string"
+                            , paramType = "Json"
+                            , defaultValue = ""),
+                    @ApiImplicitParam(name = "name"
+                            , value = "사용자 이름"
+                            , required = true
+                            , dataType = "string"
+                            , paramType = "Json"
+                            , defaultValue = ""),
+                    @ApiImplicitParam(name = "password"
+                            , value = "사용자 비밀번호"
+                            , required = true
+                            , dataType = "string"
+                            , paramType = "Json"
+                            , defaultValue = "")
+            })
+
     @PostMapping("/signup")
     //json 형식으로 데이터 받기 위해 @RequestBody 이용
     public String signup(@RequestBody MemberSignupRequestDto requestDto) throws Exception {
