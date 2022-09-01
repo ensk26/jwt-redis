@@ -101,7 +101,6 @@ public class AuthController {
         String authorizationHeader = httpServletRequest.getHeader("Authorization");
         String refreshToken = authorizationHeader.split(" ")[1];
         authService.logout(refreshToken);
-        //AuthService
     }
 
     //회원탈퇴, 닉네임 변경, 비밀번호 변경
