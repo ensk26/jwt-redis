@@ -24,7 +24,7 @@ public class CustomUserDetailService implements UserDetailsService {
     private final MemberService memberService;
 
     @Override
-    @Cacheable(value = CacheKey.USER, key = "#email", unless = "#result==null")
+//    @Cacheable(value = CacheKey.USER, key = "#email", unless = "#result==null")
     //토큰을 줄때마다 데이터베이스를 거치는것을 줄임
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Member member = memberService.findMember(email)

@@ -18,7 +18,8 @@ spring:
     host: localhost
 
 jwt:
-  secret: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  secret: ENC(FxEQ/K0wbDQ2EKum80sk2WgW/2MyzfAItaj+urLgiL/uOBc8wtQEuf9hTELhlIS1bCjUYKTNsNTk8BO901nnlVAxmK8ZT/H4vQ3i3s11CZ5Idu2OkxBkY0weCPKAFrfUOdUfZ8CqGKwb2rUYusSoCXk+j4o8M5Sj)
+
 logging:
   level:
     com.tutorial: debug

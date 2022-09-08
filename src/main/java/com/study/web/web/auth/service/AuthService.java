@@ -63,27 +63,26 @@ public class AuthService {
         //uuid로 토큰 생성
         String email = member.getEmail();
         log.info(email);
-        String accessToken = jwtTokenUtil.generateAccessToken(email);
+        String accessToken = jwtTokenUtil.generateAccessToken(email,member.getRole());
         log.info(accessToken);
-        String refreshToken = refreshTokenService.saveRefreshToken(email, jwtTokenUtil.generateRefreshToken(email),
+        String refreshToken = refreshTokenService.saveRefreshToken(email, jwtTokenUtil.generateRefreshToken(email,member.getRole()),
                         REFRESH_TOKEN_EXPIRATION_TIME.getValue());
 
         //왜 refreshToken은 생성때 accessToken과 같은 만료 기간을 사용해 생성해서, redis의 생성기간을 또 지정을 해주지
         log.info(String.valueOf(refreshToken));
         log.info("토큰 생성후");
+        //JwtTokenUtil.validateToken(accessToken);
         return JwtResponseDto.toEntity(accessToken, refreshToken);
     }
 
     //캐시 제거
-    public void logout(String refreshToken) {
+    public void logout(String email) {
         //refreshToken 삭제
-        String email = jwtTokenUtil.getEmail(refreshToken);
         removeCache(email);
         refreshTokenService.deleteRefreshToken(email);
     }
 
-    public void Withdrawal(String refreshToken) {
-        String email = jwtTokenUtil.getEmail(refreshToken);
+    public void Withdrawal(String email) {
         removeCache(email);
         refreshTokenService.deleteRefreshToken(email);
         memberService.deleteMember(email);
@@ -93,24 +92,22 @@ public class AuthService {
     //닉네임,비밀번호 변경 구현
     //앞에서 간단히 검증, 여기서 db에서 회원정보확인하고 처리
 
-    public JwtResponseDto reIssueAccessToken(String refreshToken) {
+    public JwtResponseDto reIssueAccessToken(Member member) {
 
-        String email = jwtTokenUtil.getEmail(refreshToken);
-
-        String accessToken = jwtTokenUtil.generateAccessToken(email);
+        String accessToken = jwtTokenUtil.generateAccessToken(member.getEmail(),member.getRole());
 
         //클라이언트 refresh 토큰의 만료 시간이, 지정한 최소 refresh토큰 만료 시간보다 적을때 새로운 refresh 토큰을 발급해준다.
-        if (jwtTokenUtil.getExpirationTime(refreshToken) < REISSUE_EXPIRATION_TIME.getValue()) {
+       /* if (jwtTokenUtil.getExpirationTime(refreshToken) < REISSUE_EXPIRATION_TIME.getValue()) {
             return JwtResponseDto.toEntity(accessToken, refreshTokenService.saveRefreshToken(email,
-                    jwtTokenUtil.generateRefreshToken(email), REFRESH_TOKEN_EXPIRATION_TIME.getValue()));
-        }
+                    jwtTokenUtil.generateRefreshToken(email,member.getRole()), REFRESH_TOKEN_EXPIRATION_TIME.getValue()));
+        }*/
 
-        return JwtResponseDto.toEntity(accessToken, refreshToken);
+        return JwtResponseDto.toEntity(accessToken, null);
         //dto에 숨겨 놓기 , todo 책갈피
         //중복되는거 나중에 private로 빼기
     }
 
-    @CacheEvict(value = CacheKey.USER,key = "#email")
+    //@CacheEvict(value = CacheKey.USER,key = "#email")
     private void removeCache(String email) {
     }
 

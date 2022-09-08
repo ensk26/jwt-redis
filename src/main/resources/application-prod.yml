@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ENC(v7LPZvImWEPh+Fsdm3Zu7GQ3l52QmVbh0MfEvx)
+    username: ENC(4dsjB2r0OUX2hCBW+UR0oQ==)
+    password: ENC(3KVvIyaaqwfUlu416uYnJ7rMIXBiGear)
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  redis:
+    port: 6379
+    host: ENC(EUZ8cfoXnQ6uO7pUUHTSfA7h1VghUeaM2B/GEhHMX38d6kDa+7Z6KB40sIzlW/eyHMKBCL7IOF8=)
+
+  jpa:
+    hibernate:
+      ddl-auto: none

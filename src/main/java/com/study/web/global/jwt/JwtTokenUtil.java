@@ -2,7 +2,9 @@ package com.study.web.global.jwt;
 
 import com.study.web.global.error.exception.ErrorCode;
 import com.study.web.global.error.exception.NotValidTokenException;
+import com.study.web.global.model.Role;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,37 +26,54 @@ public class JwtTokenUtil {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
-    public String generateAccessToken(String email) {
-        return doGenerateToken(email,ACCESS_TOKEN_EXPIRATION_TIME.getValue());
-    }
-
-    public String generateRefreshToken(String email) {
-        return doGenerateToken(email, REFRESH_TOKEN_EXPIRATION_TIME.getValue());
-    }
-
-    private String doGenerateToken(String email, Long expireTime) {
-        Claims claims = Jwts.claims();
-        claims.put("email", email);
-
+    public String generateAccessToken(String email, Role role) {
         return Jwts.builder()
-                .setSubject("ACCESS")
-                .setClaims(claims)
-                .setAudience(email)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expireTime))
-                .signWith(getSigningKey(SECRET_KEY), SignatureAlgorithm.HS256)
+                .setSubject(TokenType.ACCESS.name())                // 토큰 제목
+                .setAudience(email)                                 // 토큰 대상자
+                .setIssuedAt(new Date())                            // 토큰 발급 시간
+                .setExpiration(createAccessTokenExpireTime())       // 토큰 만료 시간
+                .claim("role", role)                          // 유저 role
+                .signWith(getSigningKey(SECRET_KEY), SignatureAlgorithm.HS512)
                 .setHeaderParam("typ", "JWT")
                 .compact();
-        //무슨 내용인지 공부, {토큰 대상자에 uuid 넣자}, access token인지, refresh token인지 판다
+    }
+
+    private Date createAccessTokenExpireTime() {
+        return new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION_TIME.getValue());
+    }
+
+    public String generateRefreshToken(String email, Role role) {
+        return Jwts.builder()
+                .setSubject(TokenType.REFRESH.name())                // 토큰 제목
+                .setAudience(email)                                 // 토큰 대상자
+                .setIssuedAt(new Date())                            // 토큰 발급 시간
+                .setExpiration(creatRefreshTokenExpireTime())       // 토큰 만료 시간
+                .claim("role", role)                          // 유저 role
+                .signWith(getSigningKey(SECRET_KEY), SignatureAlgorithm.HS512)
+                .setHeaderParam("typ", "JWT")
+                .compact();
+    }
+
+    private Date creatRefreshTokenExpireTime() {
+        return new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION_TIME.getValue());
     }
 
     private Key getSigningKey(String secretKey) {
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        log.info(secretKey);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     public String getEmail(String token) {
-        return extractAllClaims(token).get("email",String.class);
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey(SECRET_KEY))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody().getAudience();
+        } catch (Exception e) {
+            throw new NotValidTokenException(ErrorCode.NOT_VALID_TOKEN);
+        }
     }
 
     private Claims extractAllClaims(String token) {
@@ -95,7 +114,7 @@ public class JwtTokenUtil {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey(SECRET_KEY))
                     .build()
-                    .parseClaimsJwt(token);
+                    .parseClaimsJws(token);
         } catch (MalformedJwtException | SecurityException e) {
             log.error("잘못된 jwt token");
             throw new NotValidTokenException(ErrorCode.INVALID_TOKEN_SIGNATURE);

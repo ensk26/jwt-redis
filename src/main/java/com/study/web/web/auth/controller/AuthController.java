@@ -1,15 +1,18 @@
 package com.study.web.web.auth.controller;
 
 
+import com.study.web.domain.member.entity.Member;
 import com.study.web.global.jwt.JwtTokenUtil;
 import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
 import com.study.web.web.auth.service.AuthService;
+import com.study.web.web.auth.service.AuthUser;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,28 +33,6 @@ public class AuthController {
             @ApiResponse(code = 200, message = "성공입니다.")
             , @ApiResponse(code = 400, message = "접근이 올바르지 않습니다.")
     })
-
-    @ApiImplicitParams(
-            {
-                    @ApiImplicitParam(name = "email"
-                            , value = "사용자 email"
-                            , required = true
-                            , dataType = "string"
-                            , paramType = "Json"
-                            , defaultValue = ""),
-                    @ApiImplicitParam(name = "name"
-                            , value = "사용자 이름"
-                            , required = true
-                            , dataType = "string"
-                            , paramType = "Json"
-                            , defaultValue = ""),
-                    @ApiImplicitParam(name = "password"
-                            , value = "사용자 비밀번호"
-                            , required = true
-                            , dataType = "string"
-                            , paramType = "Json"
-                            , defaultValue = "")
-            })
 
     @PostMapping("/signup")
     //json 형식으로 데이터 받기 위해 @RequestBody 이용
@@ -82,11 +63,11 @@ public class AuthController {
             , @ApiResponse(code = 400, message = "접근이 올바르지 않습니다.")
     })
 
-    @PostMapping("/re-issue")
-    public ResponseEntity<JwtResponseDto> reIssue(HttpServletRequest httpServletRequest) {
-        String authorizationHeader = httpServletRequest.getHeader("Authorization");
-        String refreshToken = authorizationHeader.split(" ")[1];
-        return ResponseEntity.ok(authService.reIssueAccessToken(refreshToken));
+    @PostMapping("/reissue")
+    public ResponseEntity<JwtResponseDto> reIssue(@AuthUser Member member) {
+       /* String authorizationHeader = httpServletRequest.getHeader("Authorization");
+        String refreshToken = authorizationHeader.split(" ")[1];*/
+        return ResponseEntity.ok(authService.reIssueAccessToken(member));
     }
 
     @ApiOperation(value = "로그아웃 API", notes= "access token을 이용해 로그아웃을 진행한다.")
@@ -97,10 +78,8 @@ public class AuthController {
     })
 
     @PostMapping("/logout")
-    public void logout(HttpServletRequest httpServletRequest) {
-        String authorizationHeader = httpServletRequest.getHeader("Authorization");
-        String refreshToken = authorizationHeader.split(" ")[1];
-        authService.logout(refreshToken);
+    public void logout(@AuthUser Member member) {
+        authService.logout(member.getEmail());
     }
 
     //회원탈퇴, 닉네임 변경, 비밀번호 변경
@@ -113,10 +92,8 @@ public class AuthController {
     })
 
     @PostMapping("/withdrawal")
-    public void Withdrawal(HttpServletRequest httpServletRequest) {
-        String authorizationHeader = httpServletRequest.getHeader("Authorization");
-        String refreshToken = authorizationHeader.split(" ")[1];
-        authService.Withdrawal(refreshToken);
+    public void Withdrawal(@AuthUser Member member) {
+        authService.Withdrawal(member.getEmail());
     }
 
     private String resolveToken(String accessToken) {

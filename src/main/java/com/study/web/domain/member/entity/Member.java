@@ -24,14 +24,15 @@ public class Member {
     //private String uuid; //뺀다.
     @Id
     @NotNull
-    @Column(length = 20)
+    @Column(length = 100)
     private String email;
 
     @NotNull
-    @Column(length = 20)
+    @Column(length = 100)
     private String name;
 
     @NotNull
+    @Column(length = 200)
     private String password;
 
     private Role role; //뺀다.

@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
 
+env:
+  MYDUO_JASYPT_PASSWORD: ${{ secrets.MYDUO_JASYPT_PASSWORD }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
