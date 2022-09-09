@@ -4,7 +4,7 @@ spring:
       on-profile: prod
 
   datasource:
-    url: ENC(v7LPZvImWEPh+Fsdm3Zu7GQ3l52QmVbh0MfEvx)
+    url: ENC(QDec3k8R6AV3X61IOhYoQfDwmwzC0hjOizAjOvzee2I/6RoO/6UG8HkxHXHwml2GjbpGb5vzFFKuOf7JhJ/n1w==)
     username: ENC(4dsjB2r0OUX2hCBW+UR0oQ==)
     password: ENC(3KVvIyaaqwfUlu416uYnJ7rMIXBiGear)
     driver-class-name: org.mariadb.jdbc.Driver
