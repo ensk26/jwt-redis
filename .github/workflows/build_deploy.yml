@@ -63,4 +63,4 @@ jobs:
       - name: Docker run
         run: |
             docker stop myduo && docker rm myduo && docker rmi ${{ secrets.DOCKERHUB_TAG }}
-            docker run -d -p 80:8080 -e TZ=Asia/Seoul --name myduo ${{ secrets.DOCKERHUB_TAG }}
+            docker run -d -p 80:8080 -e TZ=Asia/Seoul -e MYDUO_JASYPT_PASSWORD=${{ secrets.MYDUO_JASYPT_PASSWORD }} --name myduo ${{ secrets.DOCKERHUB_TAG }}
