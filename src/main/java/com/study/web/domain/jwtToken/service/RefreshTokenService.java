@@ -15,7 +15,7 @@ public class RefreshTokenService {
     //private final RefreshTokenRedisRepository refreshTokenRepository;
     private final RedisService redisService;
 
-    public String saveRefreshToken(String email, String refreshToken, Long expiration) {
+    public void saveRefreshToken(String email, String refreshToken, Long expiration) {
         log.info(email);
         RefreshToken token = RefreshToken.builder()
                 .id(email)
@@ -26,7 +26,7 @@ public class RefreshTokenService {
         //log.debug(String.valueOf(refreshTokenRepository.save(token)));
        // return refreshTokenRepository.save(token);
         redisService.setValues(email,refreshToken, Duration.ofMillis(expiration));
-        return redisService.getValues(email);
+        //return redisService.getValues(email);
     }
 
     public String findRefreshToken(String email){

@@ -27,8 +27,11 @@ public class CustomUserDetailService implements UserDetailsService {
 //    @Cacheable(value = CacheKey.USER, key = "#email", unless = "#result==null")
     //토큰을 줄때마다 데이터베이스를 거치는것을 줄임
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member member = memberService.findMember(email)
-                .orElseThrow(()-> new NoSuchElementException("등록되지 않은 사용자"));
+        Member member = memberService.findMember(email);
+        if (member == null) {
+            throw new NoSuchElementException("등록되지 않은 사용자");
+        }
+                //.orElseThrow(()-> new NoSuchElementException("등록되지 않은 사용자"));
 
         List<GrantedAuthority> roles = new ArrayList<>();
         roles.add(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()));

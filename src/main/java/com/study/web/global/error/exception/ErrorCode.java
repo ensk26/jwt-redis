@@ -10,7 +10,9 @@ public enum ErrorCode {
     INVALID_TOKEN_SIGNATURE(401, "잘못된 JWT 서명입니다."),
     UNSUPPORTED_TOKEN(401, "지원되지 않는 JWT 토큰입니다."),
     INVALID_TOKEN(401,"토큰 서명 오류"),
-    NOT_VALID_TOKEN(401,"해당 토큰은 유효하지 않습니다.");
+    NOT_VALID_TOKEN(401,"해당 토큰은 유효하지 않습니다."),
+    NOT_ACCESS_TOKEN(401,"해당 토큰은 access token이 아닙니다."),
+    NOT_REFRESH_TOKEN(401,"해당 토큰은 refresh token이 아닙니다.");
 
 
 

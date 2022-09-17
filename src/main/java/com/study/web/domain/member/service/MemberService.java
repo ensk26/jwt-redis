@@ -19,7 +19,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    public Optional<Member> findMember(String email) {
+    public Member findMember(String email) {
         return memberRepository.findByEmail(email);
     }
 

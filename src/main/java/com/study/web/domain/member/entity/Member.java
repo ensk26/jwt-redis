@@ -35,7 +35,7 @@ public class Member {
     @Column(length = 200)
     private String password;
 
-    private Role role; //뺀다.
+    private Role role;
 
     //entity는 dto의 존재를 몰라야한다.,dto에 종속될수있으니 하지 말자..
 

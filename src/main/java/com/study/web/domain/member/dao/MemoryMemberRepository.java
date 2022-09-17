@@ -19,7 +19,7 @@ public class MemoryMemberRepository{//} implements MemberRepository {
     }
 
     //@Override
-    public Optional<Member> findByEmail(String email) {
-        return Optional.ofNullable(store.get(email));
+    public Member findByEmail(String email) {
+        return store.get(email);
     }
 }

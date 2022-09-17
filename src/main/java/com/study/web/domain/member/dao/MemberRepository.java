@@ -10,7 +10,7 @@ public interface MemberRepository extends JpaRepository<Member,Long> {
 
     //void save(Member member);
 
-    Optional<Member> findByEmail(String email);
+    Member findByEmail(String email);
 
     //한가지 작업 이상을 한다면 transactional 필수
     @Transactional

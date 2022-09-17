@@ -30,49 +30,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = getToken(request);
-        //if (token != null) {
-        //checkLogout(accessToken);
-        log.info(token);
+        String token = jwtTokenUtil.getToken(request);
+
         String email = jwtTokenUtil.getEmail(token);
         jwtTokenUtil.validateToken(token);
-        //todo: email과 validateToken 순서에 대해 왜 signature 오류만 나는지에 대해
-        //if (email != null) {
-        //validateAccessToken(token, userDetails);
+
         UserDetails userDetails = customUserDetailService.loadUserByUsername(email);
         processSecurity(request, userDetails);
-                log.info("성공");
-            //}
-            
-        //}
         filterChain.doFilter(request,response);
     }
-
-    private String getToken(HttpServletRequest request) {
-
-        String headerAuth = request.getHeader("Authorization");
-        //헤더에서 "Bearer "만 제외하고 반환
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
-        }
-
-        //클라이언트에서 header로 token을 안보내주면 null 반환
-        return null;
-    }
-
-    /*private void checkLogout(String accessToken) {
-        if (logoutAccessTokenRepository.existsById(accessToken)) {
-            throw new IllegalArgumentException("이미 로그아웃된 회원입니다.");
-        }
-    }*/
-
-    //token유효성검사
-    private void validateAccessToken(String token, UserDetails userDetails) {
-        if (!jwtTokenUtil.validateToken(token, userDetails)) {
-            throw new IllegalArgumentException("토큰 검증 실패");
-        }
-    }
-
 
     //securityContext에 해당 유저 정보를 넣어주는 과정인것 같다...
     private void processSecurity(HttpServletRequest request, UserDetails userDetails) {

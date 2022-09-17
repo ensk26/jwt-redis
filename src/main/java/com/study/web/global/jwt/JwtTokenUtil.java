@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -59,7 +61,6 @@ public class JwtTokenUtil {
     }
 
     private Key getSigningKey(String secretKey) {
-        log.info(secretKey);
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
@@ -76,6 +77,18 @@ public class JwtTokenUtil {
         }
     }
 
+    public String getToken(HttpServletRequest request) {
+
+        String headerAuth = request.getHeader("Authorization");
+        //헤더에서 "Bearer "만 제외하고 반환
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            return headerAuth.substring(7);
+        }
+
+        //클라이언트에서 header로 token을 안보내주면 null 반환
+        return null;
+    }
+
     private Claims extractAllClaims(String token) {
         try {
             return Jwts.parserBuilder()
@@ -89,7 +102,7 @@ public class JwtTokenUtil {
         }
     }
 
-    public long getExpirationTime(String token) {
+    /*public long getExpirationTime(String token) {
         Date expiration = extractAllClaims(token).getExpiration();
         Date now = new Date();
         return expiration.getTime()-now.getTime();
@@ -102,7 +115,7 @@ public class JwtTokenUtil {
         }
 
         return email.equals(userDetails.getUsername());
-    }
+    }*/
 
     private boolean isTokenExpired(String token) {
         Date expiration = extractAllClaims(token).getExpiration();
@@ -112,9 +125,40 @@ public class JwtTokenUtil {
     public void validateToken(String token) {
         try {
             Jwts.parserBuilder()
+                    .requireSubject(TokenType.ACCESS.name())
                     .setSigningKey(getSigningKey(SECRET_KEY))
                     .build()
                     .parseClaimsJws(token);
+        } catch (MissingClaimException |IncorrectClaimException ex) {
+            // sub 필드가 없을때, sub 필드가 ACCESS.name()이 아닐때
+            log.error("subject 잘못된 jwt token");
+            throw new NotValidTokenException(ErrorCode.NOT_ACCESS_TOKEN);
+        } catch (MalformedJwtException | SecurityException e) {
+            log.error("잘못된 jwt token");
+            throw new NotValidTokenException(ErrorCode.INVALID_TOKEN_SIGNATURE);
+        } catch (ExpiredJwtException e) {
+            log.error("만료된 jwt token");
+            throw new NotValidTokenException(ErrorCode.TOKEN_EXPIRED);
+        } catch (UnsupportedJwtException e) {
+            log.error("지원하지 않는 jwt token");
+            throw new NotValidTokenException(ErrorCode.INVALID_TOKEN_SIGNATURE);
+        } catch (IllegalArgumentException e) {
+            log.error("잘못된 jwt token");
+            throw new NotValidTokenException(ErrorCode.NOT_VALID_TOKEN);
+        }
+    }
+
+    public void validateRefreshTokn(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .requireSubject(TokenType.REFRESH.name())
+                    .setSigningKey(getSigningKey(SECRET_KEY))
+                    .build()
+                    .parseClaimsJws(token);
+        } catch (MissingClaimException |IncorrectClaimException ex) {
+            // sub 필드가 없을때, sub 필드가 REFRESH.name()이 아닐때
+            log.error("subject 잘못된 jwt token");
+            throw new NotValidTokenException(ErrorCode.NOT_REFRESH_TOKEN);
         } catch (MalformedJwtException | SecurityException e) {
             log.error("잘못된 jwt token");
             throw new NotValidTokenException(ErrorCode.INVALID_TOKEN_SIGNATURE);
@@ -131,4 +175,4 @@ public class JwtTokenUtil {
     }
 }
 
-//todo: customUser 수정, filter 수정, filter적용해서 전반적으로 수정
+//todo: refresh token인지 값 확인, 만약 refresh token이면 해당 refresh token이 redis에 저장이 되있는지 확인(filter에서 해결 될것 같다)

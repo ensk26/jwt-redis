@@ -31,7 +31,7 @@ public class SecurityConfig{
 
     //정적 파일에 대한 요청들
     private static final String[] AUTH_WHITELLIST = {
-            "/auth/", "/auth/signup", "/auth/login",
+            "/auth/", "/auth/signup", "/auth/login", "/auth/reissue",
             "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**"
     };
 

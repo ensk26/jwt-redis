@@ -5,6 +5,8 @@ import com.study.web.domain.jwtToken.service.RefreshTokenService;
 import com.study.web.domain.member.entity.Member;
 import com.study.web.domain.member.service.MemberService;
 import com.study.web.global.cache.CacheKey;
+import com.study.web.global.error.exception.ErrorCode;
+import com.study.web.global.error.exception.NotValidTokenException;
 import com.study.web.global.jwt.JwtTokenUtil;
 import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
 import static com.study.web.global.jwt.JwtExpirationEnums.REISSUE_EXPIRATION_TIME;
@@ -37,7 +40,7 @@ public class AuthService {
     public String signup(MemberSignupRequestDto requestDto) throws Exception {
 
         //이미 해당 이메일로 된 계정이 존재한다.
-        if (memberService.findMember(requestDto.getEmail()).isPresent()){
+        if (memberService.findMember(requestDto.getEmail())!=null){
             throw new Exception("이미 해당 이메일로 된 계정이 존재");
         }
 
@@ -50,8 +53,11 @@ public class AuthService {
 
         //스프링 시큐러티로 만든 provider가 반환한 Authentication 객체는 나중에 구현 해보자
 
-        Member member = memberService.findMember(requestDto.getEmail())
-                .orElseThrow(()->new NoSuchElementException("해당 이메일이 존재하지 않음"));
+        Member member = memberService.findMember(requestDto.getEmail());
+        if (member == null) {
+            throw new NoSuchElementException("해당 이메일이 존재하지 않음");
+        }
+                //.orElseThrow(()->new NoSuchElementException("해당 이메일이 존재하지 않음"));
         //.orElseThrow 비어있는 파라미터를 던지면, NoSuchElementException가 발생함
 
         //비밀번호가 일치하는지
@@ -59,18 +65,14 @@ public class AuthService {
             throw new IllegalArgumentException("비밀번호가 틀림");
             //적절하지 않은 인자나 메소드를 받을때 발생하는 오류
         }
-        log.info("토큰 생성전");
         //uuid로 토큰 생성
         String email = member.getEmail();
-        log.info(email);
         String accessToken = jwtTokenUtil.generateAccessToken(email,member.getRole());
-        log.info(accessToken);
-        String refreshToken = refreshTokenService.saveRefreshToken(email, jwtTokenUtil.generateRefreshToken(email,member.getRole()),
-                        REFRESH_TOKEN_EXPIRATION_TIME.getValue());
+        String refreshToken= jwtTokenUtil.generateRefreshToken(email,member.getRole());
+
+        refreshTokenService.saveRefreshToken(email, refreshToken, REFRESH_TOKEN_EXPIRATION_TIME.getValue());
 
         //왜 refreshToken은 생성때 accessToken과 같은 만료 기간을 사용해 생성해서, redis의 생성기간을 또 지정을 해주지
-        log.info(String.valueOf(refreshToken));
-        log.info("토큰 생성후");
         //JwtTokenUtil.validateToken(accessToken);
         return JwtResponseDto.toEntity(accessToken, refreshToken);
     }
@@ -92,18 +94,23 @@ public class AuthService {
     //닉네임,비밀번호 변경 구현
     //앞에서 간단히 검증, 여기서 db에서 회원정보확인하고 처리
 
-    public JwtResponseDto reIssueAccessToken(Member member) {
+    public JwtResponseDto reIssueAccessToken(String token) {
 
+        jwtTokenUtil.validateRefreshTokn(token); //refresh toekn인지 확인
+        String email = jwtTokenUtil.getEmail(token);
+
+        if (!token.equals(refreshTokenService.findRefreshToken(email))) {
+            log.error("존재하지 않는 refresh Token");
+            throw new NotValidTokenException(ErrorCode.NOT_VALID_TOKEN);
+        }
+        Member member = memberService.findMember(email);
         String accessToken = jwtTokenUtil.generateAccessToken(member.getEmail(),member.getRole());
+        String refreshToken = jwtTokenUtil.generateRefreshToken(member.getEmail(), member.getRole());
 
-        //클라이언트 refresh 토큰의 만료 시간이, 지정한 최소 refresh토큰 만료 시간보다 적을때 새로운 refresh 토큰을 발급해준다.
-       /* if (jwtTokenUtil.getExpirationTime(refreshToken) < REISSUE_EXPIRATION_TIME.getValue()) {
-            return JwtResponseDto.toEntity(accessToken, refreshTokenService.saveRefreshToken(email,
-                    jwtTokenUtil.generateRefreshToken(email,member.getRole()), REFRESH_TOKEN_EXPIRATION_TIME.getValue()));
-        }*/
+        refreshTokenService.saveRefreshToken(email, refreshToken, REFRESH_TOKEN_EXPIRATION_TIME.getValue());
 
-        return JwtResponseDto.toEntity(accessToken, null);
-        //dto에 숨겨 놓기 , todo 책갈피
+        return JwtResponseDto.toEntity(accessToken, refreshToken);
+        //todo 오류 메시지 정리하기
         //중복되는거 나중에 private로 빼기
     }
 
@@ -111,5 +118,8 @@ public class AuthService {
     private void removeCache(String email) {
     }
 
+    //todo 비밀번호 변경, 닉네임 변경 하기
+
+    //todo 리프레시 토큰 탈취시 액세스 토큰 재발급해 이용하는것을 맏기 위해 로그인을 알려주는 기능을 구현하기
 
 }

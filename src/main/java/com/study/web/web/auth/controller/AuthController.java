@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -64,10 +65,11 @@ public class AuthController {
     })
 
     @PostMapping("/reissue")
-    public ResponseEntity<JwtResponseDto> reIssue(@AuthUser Member member) {
-       /* String authorizationHeader = httpServletRequest.getHeader("Authorization");
-        String refreshToken = authorizationHeader.split(" ")[1];*/
-        return ResponseEntity.ok(authService.reIssueAccessToken(member));
+    public ResponseEntity<JwtResponseDto> reIssue(HttpServletRequest request) {
+        //String authorizationHeader = request.getHeader("Authorization");
+        //String refreshToken = authorizationHeader.split(" ")[1];
+        String refreshToken = jwtTokenUtil.getToken(request);
+        return ResponseEntity.ok(authService.reIssueAccessToken(refreshToken));
     }
 
     @ApiOperation(value = "로그아웃 API", notes= "access token을 이용해 로그아웃을 진행한다.")
@@ -78,7 +80,7 @@ public class AuthController {
     })
 
     @PostMapping("/logout")
-    public void logout(@AuthUser Member member) {
+    public void logout(@ApiIgnore @AuthUser Member member) {
         authService.logout(member.getEmail());
     }
 
@@ -92,14 +94,15 @@ public class AuthController {
     })
 
     @PostMapping("/withdrawal")
-    public void Withdrawal(@AuthUser Member member) {
+    public void Withdrawal(@ApiIgnore @AuthUser Member member) {
         authService.Withdrawal(member.getEmail());
     }
 
-    private String resolveToken(String accessToken) {
-        return accessToken.substring(7);
+    private String resolveToken(String token) {
+        return token.substring(7);
     }
 
 }
 
 //restController랑, controller, 기본 생성자 기억하자, 예외처리.. response body 공부, controllerAdvice,
+// todo: redis 어떤 key값 어디로 저장되는 지 확인
