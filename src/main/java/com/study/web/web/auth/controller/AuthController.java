@@ -3,6 +3,7 @@ package com.study.web.web.auth.controller;
 
 import com.study.web.domain.member.entity.Member;
 import com.study.web.global.jwt.JwtTokenUtil;
+import com.study.web.web.auth.dto.UpdatePasswordRequestDto;
 import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
@@ -12,7 +13,6 @@ import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -66,8 +66,6 @@ public class AuthController {
 
     @PostMapping("/reissue")
     public ResponseEntity<JwtResponseDto> reIssue(HttpServletRequest request) {
-        //String authorizationHeader = request.getHeader("Authorization");
-        //String refreshToken = authorizationHeader.split(" ")[1];
         String refreshToken = jwtTokenUtil.getToken(request);
         return ResponseEntity.ok(authService.reIssueAccessToken(refreshToken));
     }
@@ -93,13 +91,24 @@ public class AuthController {
             , @ApiResponse(code = 400, message = "접근이 올바르지 않습니다.")
     })
 
-    @PostMapping("/withdrawal")
+    @DeleteMapping("/withdrawal")
     public void Withdrawal(@ApiIgnore @AuthUser Member member) {
         authService.Withdrawal(member.getEmail());
     }
 
-    private String resolveToken(String token) {
-        return token.substring(7);
+//    private String resolveToken(String token) {
+//        return token.substring(7);
+//    }
+
+    @PatchMapping("/update/password")
+    public void UpdatePassword(@ApiIgnore @AuthUser Member member,
+                               @RequestBody UpdatePasswordRequestDto updatePasswordRequestDto) {
+        authService.UpdatePassword(member.getId(),updatePasswordRequestDto);
+    }
+
+    @PatchMapping("/update/name")
+    public void UpdateName(@ApiIgnore @AuthUser Member member,@RequestBody String name) {
+        authService.UpdateName(member.getId(),name);
     }
 
 }

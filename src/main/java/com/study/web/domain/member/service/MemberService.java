@@ -25,6 +25,15 @@ public class MemberService {
 
     public void deleteMember(String email) {
         memberRepository.deleteByEmail(email);
-        //나중에 querydsl을 이용해 boolean(y/n 값으로도 바꾸는 작업 필요) 수정
     }
+
+    public void updatePassword(Long id, String password) {
+        memberRepository.updatePasswordById(id,password);
+    }
+
+    public void updateName(Long id, String name) {
+        memberRepository.updateNameById(id,name);
+    }
+
+
 }

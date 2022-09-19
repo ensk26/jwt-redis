@@ -8,9 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 
@@ -20,10 +18,12 @@ import javax.validation.constraints.NotNull;
 @Entity
 public class Member {
 
-    //토큰에 저장할 id
-    //private String uuid; //뺀다.
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @NotNull
+    @Embedded
     @Column(length = 100)
     private String email;
 

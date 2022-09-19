@@ -4,24 +4,21 @@ import com.study.web.DuplicationValidate;
 import com.study.web.domain.jwtToken.service.RefreshTokenService;
 import com.study.web.domain.member.entity.Member;
 import com.study.web.domain.member.service.MemberService;
-import com.study.web.global.cache.CacheKey;
 import com.study.web.global.error.exception.ErrorCode;
 import com.study.web.global.error.exception.NotValidTokenException;
 import com.study.web.global.jwt.JwtTokenUtil;
+import com.study.web.web.auth.dto.UpdatePasswordRequestDto;
 import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
 import com.study.web.web.auth.dto.MemberSignupRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
-import static com.study.web.global.jwt.JwtExpirationEnums.REISSUE_EXPIRATION_TIME;
 
 @Service
 //@Transactional
@@ -96,7 +93,7 @@ public class AuthService {
 
     public JwtResponseDto reIssueAccessToken(String token) {
 
-        jwtTokenUtil.validateRefreshTokn(token); //refresh toekn인지 확인
+        jwtTokenUtil.validateRefreshTokn(token); //refresh toekn이 유효한지 확인
         String email = jwtTokenUtil.getEmail(token);
 
         if (!token.equals(refreshTokenService.findRefreshToken(email))) {
@@ -113,6 +110,26 @@ public class AuthService {
         //todo 오류 메시지 정리하기
         //중복되는거 나중에 private로 빼기
     }
+
+    public void UpdatePassword(Long id, UpdatePasswordRequestDto requestDto) {
+        //패스워드가 같은지 비교
+        if (!requestDto.getPassword().equals(requestDto.getRepassword())) {
+            log.error("입력한 비밀번호가 서로 다르다.");
+            throw new IllegalArgumentException("입력한 비밀번호가 다릅니다.");
+        }
+        //같으면 패스워드 암호화 하고 id를 db에 저장
+        String password = passwordEncoder.encode(requestDto.getPassword());
+        memberService.updatePassword(id,password);
+    }
+
+    public void UpdateName(Long id, String name) {
+        if (name == null) {
+            log.error("입력한 이름이 비어있다.");
+            throw new IllegalArgumentException("입력한 이름이 비어있다.");
+        }
+        memberService.updateName(id,name);
+    }
+
 
     //@CacheEvict(value = CacheKey.USER,key = "#email")
     private void removeCache(String email) {
