@@ -16,13 +16,12 @@ public class MailServiceImpl implements MailService{
     private final JavaMailSender mailSender;
 
     @Override
-    public Mail createMail(String toAddress, String title, String message, String fromAddress) {
+    public Mail createMail(String toAddress, String title, String message) {
 
         return Mail.builder()
                 .toAddress(toAddress)
                 .title(title)
                 .message(message)
-                .fromAddress(fromAddress)
                 .build();
     }
 
@@ -33,8 +32,6 @@ public class MailServiceImpl implements MailService{
         mailMessage.setTo(mail.getToAddress());
         mailMessage.setSubject(mail.getTitle());
         mailMessage.setText(mail.getMessage());
-        mailMessage.setFrom(mail.getFromAddress());
-        mailMessage.setReplyTo(mail.getFromAddress());
 
         mailSender.send(mailMessage);
     }

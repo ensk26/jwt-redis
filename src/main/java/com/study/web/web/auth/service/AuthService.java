@@ -53,7 +53,7 @@ public class AuthService {
 
         //이메일 인증
         Mail mail = mailService.createMail(requestDto.getEmail(), JOIN_MAIL.getTitle(),
-                JOIN_MAIL.getMessage() + authNumber, JOIN_MAIL.getFromAddress());
+                JOIN_MAIL.getMessage() + authNumber);
 
         mailService.sendMail(mail);
 
