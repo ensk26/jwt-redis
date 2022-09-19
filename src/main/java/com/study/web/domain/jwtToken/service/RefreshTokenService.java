@@ -1,6 +1,5 @@
 package com.study.web.domain.jwtToken.service;
 
-//import com.study.web.domain.jwtToken.dao.RefreshTokenRedisRepository;
 import com.study.web.domain.jwtToken.entity.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

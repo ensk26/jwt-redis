@@ -1,6 +1,5 @@
 package com.study.web.domain.jwtToken.service;
 
-import com.study.web.domain.jwtToken.entity.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
