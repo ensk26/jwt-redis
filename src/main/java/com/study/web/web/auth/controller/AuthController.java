@@ -35,10 +35,10 @@ public class AuthController {
             , @ApiResponse(code = 400, message = "접근이 올바르지 않습니다.")
     })
 
-    @PostMapping("/signup")
+    @PostMapping("/join")
     //json 형식으로 데이터 받기 위해 @RequestBody 이용
-    public String signup(@RequestBody MemberSignupRequestDto requestDto) throws Exception {
-        return authService.signup(requestDto);
+    public String join(@RequestBody MemberSignupRequestDto requestDto) throws Exception {
+        return authService.join(requestDto);
     }
 
 
@@ -65,9 +65,9 @@ public class AuthController {
     })
 
     @PostMapping("/reissue")
-    public ResponseEntity<JwtResponseDto> reIssue(HttpServletRequest request) {
+    public ResponseEntity<JwtResponseDto> reIssueToken(HttpServletRequest request) {
         String refreshToken = jwtTokenUtil.getToken(request);
-        return ResponseEntity.ok(authService.reIssueAccessToken(refreshToken));
+        return ResponseEntity.ok(authService.reIssueToken(refreshToken));
     }
 
     @ApiOperation(value = "로그아웃 API", notes= "access token을 이용해 로그아웃을 진행한다.")

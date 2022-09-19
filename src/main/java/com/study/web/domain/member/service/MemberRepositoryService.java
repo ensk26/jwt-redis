@@ -5,11 +5,9 @@ import com.study.web.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
-public class MemberService {
+public class MemberRepositoryService {
     //MemberRepository를 접근하려면 무조건 service를 통해서, entity만 넘겨줘야해
     //web에서는 무조건 entity만 받아야해, domain안에 있는 내용은 무조건 entity만 넘겨주도록 만들어야함
 

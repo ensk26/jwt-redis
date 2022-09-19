@@ -1,10 +1,8 @@
 package com.study.web.web.auth.service;
 
 import com.study.web.domain.member.entity.Member;
-import com.study.web.domain.member.service.MemberService;
-import com.study.web.global.cache.CacheKey;
+import com.study.web.domain.member.service.MemberRepositoryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,13 +19,13 @@ import java.util.NoSuchElementException;
 public class CustomUserDetailService implements UserDetailsService {
 
     //login 요청이 오면 자동으로 UserDetailService 타입으로 loc 되어 있는 loadUserByUsername 함수가 실행
-    private final MemberService memberService;
+    private final MemberRepositoryService memberRepositoryService;
 
     @Override
 //    @Cacheable(value = CacheKey.USER, key = "#email", unless = "#result==null")
     //토큰을 줄때마다 데이터베이스를 거치는것을 줄임
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member member = memberService.findMember(email);
+        Member member = memberRepositoryService.findMember(email);
         if (member == null) {
             throw new NoSuchElementException("등록되지 않은 사용자");
         }

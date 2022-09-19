@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 @Getter
 @RedisHash("refreshToken")
 @NoArgsConstructor
-
 public class RefreshToken {
 
     @Id

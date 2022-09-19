@@ -3,10 +3,12 @@ package com.study.web.web.auth.service;
 import com.study.web.DuplicationValidate;
 import com.study.web.domain.jwtToken.service.RefreshTokenService;
 import com.study.web.domain.member.entity.Member;
-import com.study.web.domain.member.service.MemberService;
+import com.study.web.domain.member.service.MemberRepositoryService;
 import com.study.web.global.error.exception.ErrorCode;
 import com.study.web.global.error.exception.NotValidTokenException;
 import com.study.web.global.jwt.JwtTokenUtil;
+import com.study.web.infra.mail.service.MailService;
+import com.study.web.infra.mail.vo.Mail;
 import com.study.web.web.auth.dto.UpdatePasswordRequestDto;
 import com.study.web.web.auth.dto.JwtResponseDto;
 import com.study.web.web.auth.dto.MemberLoginRequestDto;
@@ -17,8 +19,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
+import static com.study.web.infra.mail.constant.MailMessage.JOIN_MAIL;
 
 @Service
 //@Transactional
@@ -30,27 +34,42 @@ public class AuthService {
     //private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final DuplicationValidate duplicationValidate;
-    private final MemberService memberService;
+    private final MemberRepositoryService memberRepositoryService;
     private final JwtTokenUtil jwtTokenUtil;
     private final RefreshTokenService refreshTokenService;
+    private final MailService mailService;
 
-    public String signup(MemberSignupRequestDto requestDto) throws Exception {
+    public String join(MemberSignupRequestDto requestDto) throws Exception {
 
         //이미 해당 이메일로 된 계정이 존재한다.
-        if (memberService.findMember(requestDto.getEmail())!=null){
+        if (memberRepositoryService.findMember(requestDto.getEmail())!=null){
             throw new Exception("이미 해당 이메일로 된 계정이 존재");
         }
 
         Member member = requestDto.toEntity(passwordEncoder);
-        memberService.saveMember(member);
+        memberRepositoryService.saveMember(member);
+
+        int authNumber = createRandomNumber();
+
+        //이메일 인증
+        Mail mail = mailService.createMail(requestDto.getEmail(), JOIN_MAIL.getTitle(),
+                JOIN_MAIL.getMessage() + authNumber, JOIN_MAIL.getFromAddress());
+
+        mailService.sendMail(mail);
+
         return member.getEmail();
+    }
+
+    private int createRandomNumber() {
+        Random random = new Random();
+        return random.nextInt(888888) + 111111;
     }
 
     public JwtResponseDto login(MemberLoginRequestDto requestDto) throws Exception {
 
         //스프링 시큐러티로 만든 provider가 반환한 Authentication 객체는 나중에 구현 해보자
 
-        Member member = memberService.findMember(requestDto.getEmail());
+        Member member = memberRepositoryService.findMember(requestDto.getEmail());
         if (member == null) {
             throw new NoSuchElementException("해당 이메일이 존재하지 않음");
         }
@@ -84,14 +103,14 @@ public class AuthService {
     public void Withdrawal(String email) {
         removeCache(email);
         refreshTokenService.deleteRefreshToken(email);
-        memberService.deleteMember(email);
+        memberRepositoryService.deleteMember(email);
     }
 
     //todo: 이메일 매개 변수로 받아와야함, CacheEvict 캐시 삭제를 위해 지정해줄 key 값 필요
     //닉네임,비밀번호 변경 구현
     //앞에서 간단히 검증, 여기서 db에서 회원정보확인하고 처리
 
-    public JwtResponseDto reIssueAccessToken(String token) {
+    public JwtResponseDto reIssueToken(String token) {
 
         jwtTokenUtil.validateRefreshTokn(token); //refresh toekn이 유효한지 확인
         String email = jwtTokenUtil.getEmail(token);
@@ -100,7 +119,7 @@ public class AuthService {
             log.error("존재하지 않는 refresh Token");
             throw new NotValidTokenException(ErrorCode.NOT_VALID_TOKEN);
         }
-        Member member = memberService.findMember(email);
+        Member member = memberRepositoryService.findMember(email);
         String accessToken = jwtTokenUtil.generateAccessToken(member.getEmail(),member.getRole());
         String refreshToken = jwtTokenUtil.generateRefreshToken(member.getEmail(), member.getRole());
 
@@ -119,7 +138,7 @@ public class AuthService {
         }
         //같으면 패스워드 암호화 하고 id를 db에 저장
         String password = passwordEncoder.encode(requestDto.getPassword());
-        memberService.updatePassword(id,password);
+        memberRepositoryService.updatePassword(id,password);
     }
 
     public void UpdateName(Long id, String name) {
@@ -127,7 +146,7 @@ public class AuthService {
             log.error("입력한 이름이 비어있다.");
             throw new IllegalArgumentException("입력한 이름이 비어있다.");
         }
-        memberService.updateName(id,name);
+        memberRepositoryService.updateName(id,name);
     }
 
 

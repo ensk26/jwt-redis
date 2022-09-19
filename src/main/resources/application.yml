@@ -7,6 +7,23 @@ spring:
       generate-ddl: true
       show-sql: true
 
+  mail:
+    host: ENC(o8VRqQRXFuWDvyz1jcdHfIT6mDVLUmcV)
+    port: ENC(0fpbmLoSu2LhL/tuCU0AzA==)
+    username: ENC(RggNHanPcNvH/OMH9e7E/WmiAmQ8UINtxwPOEKTroqo=)
+    password: ENC(UHw735FqISMxQOSEX1svtxsNQBT29OVuBp+N3PbkIMY=)
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+
 jwt:
   secret: ENC(FxEQ/K0wbDQ2EKum80sk2WgW/2MyzfAItaj+urLgiL/uOBc8wtQEuf9hTELhlIS1bCjUYKTNsNTk8BO901nnlVAxmK8ZT/H4vQ3i3s11CZ5Idu2OkxBkY0weCPKAFrfUOdUfZ8CqGKwb2rUYusSoCXk+j4o8M5Sj)
 
