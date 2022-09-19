@@ -106,8 +106,8 @@ public class AuthController {
         authService.UpdatePassword(member.getId(),updatePasswordRequestDto);
     }
 
-    @PatchMapping("/update/name")
-    public void UpdateName(@ApiIgnore @AuthUser Member member,@RequestBody String name) {
+    @PatchMapping("/update/name/{name}")
+    public void UpdateName(@ApiIgnore @AuthUser Member member,@PathVariable(name = "name") String name) {
         authService.UpdateName(member.getId(),name);
     }
 

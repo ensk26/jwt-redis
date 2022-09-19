@@ -135,7 +135,7 @@ public class AuthService {
     private void removeCache(String email) {
     }
 
-    //todo 비밀번호 변경, 닉네임 변경 하기
+    //todo 비밀번호 변경, 닉네임 변경 하기에서 공백" "이 들어가면 그대로 저장이 된다.
 
     //todo 리프레시 토큰 탈취시 액세스 토큰 재발급해 이용하는것을 맏기 위해 로그인을 알려주는 기능을 구현하기
 
