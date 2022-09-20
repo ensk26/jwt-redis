@@ -3,10 +3,7 @@ package com.study.web.web.auth.controller;
 
 import com.study.web.domain.member.entity.Member;
 import com.study.web.global.jwt.JwtTokenUtil;
-import com.study.web.web.auth.dto.UpdatePasswordRequestDto;
-import com.study.web.web.auth.dto.JwtResponseDto;
-import com.study.web.web.auth.dto.MemberLoginRequestDto;
-import com.study.web.web.auth.dto.MemberSignupRequestDto;
+import com.study.web.web.auth.dto.*;
 import com.study.web.web.auth.service.AuthService;
 import com.study.web.web.auth.service.AuthUser;
 import io.swagger.annotations.*;
@@ -110,6 +107,18 @@ public class AuthController {
     public void UpdateName(@ApiIgnore @AuthUser Member member,@PathVariable(name = "name") String name) {
         authService.UpdateName(member.getId(),name);
     }
+
+    @GetMapping("/validate/email/{email}")
+    public ResponseEntity<String> ValidateEmail(@PathVariable(name = "email") String email) {
+        return ResponseEntity.ok(authService.ValidateEmail(email));
+    }
+
+    @PostMapping("/find-pwd")
+    public void FindPassword(@RequestBody FindPasswordRequestDto findPasswordRequestDto) {
+        authService.FindPassword(findPasswordRequestDto);
+    }
+
+
 
 }
 

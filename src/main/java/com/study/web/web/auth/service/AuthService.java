@@ -9,19 +9,18 @@ import com.study.web.global.error.exception.NotValidTokenException;
 import com.study.web.global.jwt.JwtTokenUtil;
 import com.study.web.infra.mail.service.MailService;
 import com.study.web.infra.mail.vo.Mail;
-import com.study.web.web.auth.dto.UpdatePasswordRequestDto;
-import com.study.web.web.auth.dto.JwtResponseDto;
-import com.study.web.web.auth.dto.MemberLoginRequestDto;
-import com.study.web.web.auth.dto.MemberSignupRequestDto;
+import com.study.web.web.auth.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.NoSuchElementException;
 import java.util.Random;
 
 import static com.study.web.global.jwt.JwtExpirationEnums.REFRESH_TOKEN_EXPIRATION_TIME;
+import static com.study.web.infra.mail.constant.MailMessage.FIND_PASSWORD_MAIL;
 import static com.study.web.infra.mail.constant.MailMessage.JOIN_MAIL;
 
 @Service
@@ -49,20 +48,7 @@ public class AuthService {
         Member member = requestDto.toEntity(passwordEncoder);
         memberRepositoryService.saveMember(member);
 
-        int authNumber = createRandomNumber();
-
-        //이메일 인증
-        Mail mail = mailService.createMail(requestDto.getEmail(), JOIN_MAIL.getTitle(),
-                JOIN_MAIL.getMessage() + authNumber);
-
-        mailService.sendMail(mail);
-
         return member.getEmail();
-    }
-
-    private int createRandomNumber() {
-        Random random = new Random();
-        return random.nextInt(888888) + 111111;
     }
 
     public JwtResponseDto login(MemberLoginRequestDto requestDto) throws Exception {
@@ -149,6 +135,47 @@ public class AuthService {
         memberRepositoryService.updateName(id,name);
     }
 
+    //이메일 인증
+    public String ValidateEmail(String email) {
+
+        if (email == null) {
+            log.error("입력한 이메일이 비어있다.");
+            throw new IllegalArgumentException("입력한 이메일이 비어있다.");
+        }
+
+        String authWord = generateRandomWord();
+
+        Mail mail = mailService.createMail(email, JOIN_MAIL.getTitle(),
+                JOIN_MAIL.getMessage() + authWord);
+
+        mailService.sendMail(mail);
+
+        return authWord;
+    }
+
+    public void FindPassword(FindPasswordRequestDto findPasswordRequestDto){
+        Member member = memberRepositoryService.findMember(findPasswordRequestDto.getEmail());
+        if (member == null) {
+            throw new NoSuchElementException("해당 이메일이 존재하지 않음");
+        }
+        String randomWord = generateRandomWord();
+        String password = passwordEncoder.encode(randomWord);
+        memberRepositoryService.updatePassword(member.getId(),password);
+
+        Mail mail = mailService.createMail(findPasswordRequestDto.getEmail(), FIND_PASSWORD_MAIL.getTitle(),
+                FIND_PASSWORD_MAIL.getMessage() + randomWord);
+
+        mailService.sendMail(mail);
+    }
+
+    private String generateRandomWord() {
+        SecureRandom secureRandom = new SecureRandom();
+        return secureRandom.ints(48, 122 + 1)
+                .filter(i -> Character.isAlphabetic(i) || Character.isDigit(i))
+                .limit(10)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+    }
 
     //@CacheEvict(value = CacheKey.USER,key = "#email")
     private void removeCache(String email) {
